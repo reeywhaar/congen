@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -39,10 +41,57 @@ func main() {
 	}
 }
 
+type responseWriter struct {
+	http.ResponseWriter
+	status int
+	bytes  int
+}
+
+func (rw *responseWriter) WriteHeader(status int) {
+	rw.status = status
+	rw.ResponseWriter.WriteHeader(status)
+}
+
+func (rw *responseWriter) Write(b []byte) (int, error) {
+	n, err := rw.ResponseWriter.Write(b)
+	rw.bytes += n
+	return n, err
+}
+
 func loggingMiddleware(next http.Handler) http.Handler {
+	enc := json.NewEncoder(os.Stdout)
+
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
-		next.ServeHTTP(w, r)
-		log.Printf("%s %s (%s)", r.Method, r.URL.Path, time.Since(start).Truncate(time.Millisecond))
+		rw := &responseWriter{ResponseWriter: w, status: http.StatusOK}
+		next.ServeHTTP(rw, r)
+
+		remoteIP, remotePort, _ := net.SplitHostPort(r.RemoteAddr)
+
+		entry := map[string]any{
+			"time":            start.UTC().Format(time.RFC3339Nano),
+			"duration_ms":     time.Since(start).Milliseconds(),
+			"method":          r.Method,
+			"path":            r.URL.Path,
+			"query":           r.URL.RawQuery,
+			"status":          rw.status,
+			"bytes":           rw.bytes,
+			"remote_ip":       remoteIP,
+			"remote_port":     remotePort,
+			"host":            r.Host,
+			"user_agent":      r.UserAgent(),
+			"referer":         r.Referer(),
+			"proto":           r.Proto,
+			"content_type":    r.Header.Get("Content-Type"),
+			"accept":          r.Header.Get("Accept"),
+			"accept_encoding": r.Header.Get("Accept-Encoding"),
+			"x_forwarded_for": r.Header.Get("X-Forwarded-For"),
+			"x_real_ip":       r.Header.Get("X-Real-IP"),
+			"x_request_id":    r.Header.Get("X-Request-ID"),
+		}
+
+		if err := enc.Encode(entry); err != nil {
+			log.Printf("log encode: %v", err)
+		}
 	})
 }
