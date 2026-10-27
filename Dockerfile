@@ -1,10 +1,17 @@
 # Stage 1: Build frontend
 FROM node:26-alpine AS frontend-builder
 WORKDIR /app
+RUN apk add --no-cache vips-tools
 COPY package*.json ./
 RUN npm install
 COPY tsconfig.json vite.config.js ./
 COPY frontend/ ./frontend/
+# Square thumbnails for the image picker
+RUN mkdir -p frontend/public/img/thumbs \
+  && for f in frontend/public/img/*.*; do \
+    vipsthumbnail "$f" --size 320 --smartcrop centre \
+      -o "$PWD/frontend/public/img/thumbs/$(basename "$f")[Q=75,strip]"; \
+  done
 RUN npm run build
 
 # Stage 2: Build backend

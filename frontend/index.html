@@ -16,55 +16,115 @@
 <body>
   <canvas width="0" height="0"></canvas>
   <div class="controls">
-    <div class="controls__row controls__labels">
+    <section class="controls__section">
       <div class="controls__label">Image</div>
-    </div>
+      <select class="src" hidden></select>
+      <button type="button" class="src-button" aria-haspopup="dialog">
+        <img class="src-button__thumb" alt="">
+        <span class="src-button__name"></span>
+      </button>
+    </section>
 
-    <div class="controls__row controls__row_single">
-      <select class="src"></select>
-    </div>
-
-    <div class="controls__label">Filters</div>
-
-    <div class="controls__row">
-      <div class="applied-filters"></div>
+    <section class="controls__section">
+      <div class="controls__label">Filters</div>
       <div class="filter-stack"></div>
-    </div>
+      <div class="applied-filters"></div>
+    </section>
 
-    <div class="adjustments controls__row">
-      <div class="controls__label">Brightness</div>
-      <input type="range" class="adjustments__input brightnessInput" step="0.01" value="0" min="-1" max="1"
-        title="Brightness">
-      <div class="controls__label">Contrast</div>
-      <input type="range" class="adjustments__input contrastInput" step="0.01" value="0" min="-1" max="1"
-        title="Contrast">
-      <div class="controls__label">Saturation</div>
-      <input type="range" class="adjustments__input saturationInput" step="0.01" value="0" min="-1" max="1"
-        title="Saturation">
-    </div>
+    <section class="controls__section adjustments">
+      <div class="adjustment">
+        <div class="adjustment__header">
+          <label class="controls__label" for="brightness">Brightness</label>
+          <output class="adjustment__value" for="brightness"></output>
+        </div>
+        <input id="brightness" type="range" class="adjustment__input brightnessInput" step="0.01" value="0" min="-1"
+          max="1">
+      </div>
+      <div class="adjustment">
+        <div class="adjustment__header">
+          <label class="controls__label" for="contrast">Contrast</label>
+          <output class="adjustment__value" for="contrast"></output>
+        </div>
+        <input id="contrast" type="range" class="adjustment__input contrastInput" step="0.01" value="0" min="-1"
+          max="1">
+      </div>
+      <div class="adjustment">
+        <div class="adjustment__header">
+          <label class="controls__label" for="saturation">Saturation</label>
+          <output class="adjustment__value" for="saturation"></output>
+        </div>
+        <input id="saturation" type="range" class="adjustment__input saturationInput" step="0.01" value="0" min="-1"
+          max="1">
+      </div>
+    </section>
 
-    <div class="spacer"></div>
+    <section class="controls__section controls__section_columns">
+      <div class="field">
+        <label class="controls__label" for="scale">Scale</label>
+        <div class="stepper">
+          <button type="button" class="stepper__button" data-step="-1" aria-label="Decrease scale">&minus;</button>
+          <input id="scale" type="number" class="stepper__input zinput" value="0.5" min="0.1" step="any" max="10"
+            data-step-factor="1.25">
+          <button type="button" class="stepper__button" data-step="1" aria-label="Increase scale">+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label class="controls__label" for="crossfade">Crossfade size</label>
+        <div class="stepper">
+          <button type="button" class="stepper__button" data-step="-1"
+            aria-label="Decrease crossfade size">&minus;</button>
+          <input id="crossfade" type="number" class="stepper__input mask-tiles__value" value="45" min="0" step="5"
+            max="300">
+          <button type="button" class="stepper__button" data-step="1" aria-label="Increase crossfade size">+</button>
+        </div>
+      </div>
+    </section>
 
-    <div class="controls__row controls__labels">
-      <div class="controls__label">Scale</div>
-      <div class="controls__label">Crossfade size</div>
-    </div>
+    <section class="controls__section controls__section_columns">
+      <button type="button" class="button button_primary genb">Regenerate</button>
+      <button type="button" class="button downloadb">Download</button>
+    </section>
 
-    <div class="controls__row">
-      <input type="number" class="zinput" value="0.5" min="0.1" step="0.25" max="10" placeholder="scale" title="Scale">
-      <input type="number" class="mask-tiles__value" value="45" min="0" step="5" max="300" placeholder="Tile mask size"
-        title="Tile mask size">
-    </div>
-    <div class="controls__row">
-      <button class="genb" title="Generate (G)">Generate</button>
-      <button class="downloadb">Download</button>
-    </div>
-    <div class="medium-grey logo">
-      <a href="//vyrtsev.com">
-        <img src="/horrorse.png" class="logo__img">
-      </a>
-    </div>
+    <div class="controls__credit">by <a href="https://vyrtsev.com">Misha Vyrtsev</a></div>
   </div>
+
+  <dialog class="dialog image-picker" aria-label="Choose image">
+    <div class="dialog__body">
+      <div class="dialog__header">
+        <div class="controls__label">Image</div>
+        <form method="dialog">
+          <button class="dialog__close" aria-label="Close">&times;</button>
+        </form>
+      </div>
+      <div class="image-picker__grid"></div>
+    </div>
+  </dialog>
+
+  <dialog class="dialog size-dialog" aria-label="Download">
+    <div class="dialog__body">
+      <div class="dialog__header">
+        <div class="controls__label">Download</div>
+        <form method="dialog">
+          <button class="dialog__close" aria-label="Close">&times;</button>
+        </form>
+      </div>
+      <form class="size-dialog__form" method="dialog">
+        <div class="controls__section_columns">
+          <div class="field">
+            <label class="controls__label" for="download-width">Width</label>
+            <input id="download-width" class="input size-dialog__width" type="number" min="1" max="20000" step="1">
+          </div>
+          <div class="field">
+            <label class="controls__label" for="download-height">Height</label>
+            <input id="download-height" class="input size-dialog__height" type="number" min="1" max="20000" step="1">
+          </div>
+        </div>
+        <div class="size-dialog__actions">
+          <button class="button button_primary" value="download">Download</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
 </body>
 
 </html>

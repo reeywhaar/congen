@@ -10,6 +10,7 @@ import { Prefs } from "./Prefs";
 import { Dom } from "./Dom";
 import { SerializableState } from "./SerializableState";
 import { SizePrompt } from "./SizePrompt";
+import { ImagePicker } from "./ImagePicker";
 
 async function main() {
   const canvas = document.querySelector("canvas")!;
@@ -19,6 +20,8 @@ async function main() {
   let seed = Math.random();
 
   const dom = new Dom();
+  const imagePicker = new ImagePicker(dom);
+  const sizePrompt = new SizePrompt(dom);
 
   const db = new Database();
   await db.initialize();
@@ -48,7 +51,7 @@ async function main() {
 
   dom.download.addEventListener("click", async () => {
     const ocanvas = new OffscreenCanvas(100, 100);
-    const size = new SizePrompt().prompt(canvas.width, canvas.height);
+    const size = await sizePrompt.prompt(canvas.width, canvas.height);
     if (!size) return;
     const [width, height] = size;
 
@@ -77,6 +80,24 @@ async function main() {
     });
   });
 
+  [dom.scale, dom.maskTileSize].forEach((input) => {
+    input.parentElement
+      ?.querySelectorAll<HTMLButtonElement>(".stepper__button")
+      .forEach((button) => {
+        button.addEventListener("click", () => {
+          tools.stepNumberInput(input, Number(button.dataset.step));
+          update();
+        });
+      });
+    // arrow keys step the same way as the buttons (natively they'd use the step grid)
+    input.addEventListener("keydown", (e) => {
+      if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
+      e.preventDefault();
+      tools.stepNumberInput(input, e.key === "ArrowUp" ? 1 : -1);
+      update();
+    });
+  });
+
   document.addEventListener("keydown", (e) => {
     // 71 is g
     if (e.which === 71) update();
@@ -92,7 +113,8 @@ async function main() {
   images.forEach((src) => {
     const opt = document.createElement("option");
     opt.value = src;
-    opt.innerText = src.substring(src.lastIndexOf("/") + 1);
+    opt.innerText = displayName(src.substring(src.lastIndexOf("/") + 1));
+    opt.dataset.thumb = src.replace(/^img\//, "img/thumbs/");
     dom.source.appendChild(opt);
   });
 
@@ -104,6 +126,8 @@ async function main() {
   ] as const;
 
   [dom.brightness, dom.contrast, dom.saturation].forEach((el) => {
+    tools.syncRange(el);
+    el.addEventListener("input", () => tools.syncRange(el));
     el.addEventListener("input", update);
     el.addEventListener("change", update);
   });
@@ -111,17 +135,6 @@ async function main() {
   const selectChangeHandler = tools.debounce(
     async () => {
       const selectedOption = dom.source.options[dom.source.selectedIndex];
-      if (selectedOption.value === UPLOAD_CUSTOM_OPTION_ID) {
-        dom.source.selectedIndex = selectedImage[0];
-
-        const file = await tools.promptImage();
-        if (!file) return;
-
-        addFile(file);
-
-        return;
-      }
-
       const name = selectedOption.value;
       selectedImage = [
         dom.source.selectedIndex,
@@ -136,7 +149,6 @@ async function main() {
   );
 
   dom.source.addEventListener("change", selectChangeHandler);
-  dom.source.addEventListener("blur", selectChangeHandler); // ios safari
 
   document.body.addEventListener("dragover", (e) => {
     e.preventDefault();
@@ -151,10 +163,10 @@ async function main() {
 
     const selectItem = document.createElement("option");
     selectItem.value = id;
-    selectItem.innerText = id;
+    selectItem.innerText = displayName(file.name);
     selectItem.dataset.custom = "true";
-    if (!dom.uploadOption) throw new Error("Upload option not found");
-    dom.source.insertBefore(selectItem, dom.uploadOption);
+    selectItem.dataset.thumb = url;
+    dom.source.appendChild(selectItem);
   };
 
   const addFile = async (file: File) => {
@@ -164,19 +176,16 @@ async function main() {
     dom.source.dispatchEvent(new Event("change"));
   };
 
+  imagePicker.onUpload = async () => {
+    const file = await tools.promptImage();
+    if (file) addFile(file);
+  };
+
   try {
     const images = await db.getImages();
     await Promise.all(images.map((file) => addDatabaseFileToSelect(file)));
   } catch (e) {
     console.warn(e);
-  }
-
-  {
-    const uploadOption = document.createElement("option");
-    dom.uploadOption = uploadOption;
-    uploadOption.value = UPLOAD_CUSTOM_OPTION_ID;
-    uploadOption.innerText = "Upload image...";
-    dom.source.appendChild(uploadOption);
   }
 
   if (storedPrefsState) {
@@ -192,6 +201,7 @@ async function main() {
       }
     }
   }
+  imagePicker.update();
 
   document.body.addEventListener("drop", async (e) => {
     e.preventDefault();
@@ -202,7 +212,8 @@ async function main() {
   });
 
   Object.keys(filters).forEach((filter) => {
-    const opt = document.createElement("div");
+    const opt = document.createElement("button");
+    opt.type = "button";
     opt.classList.add("filter-item");
     opt.innerText = filter;
     opt.addEventListener("click", (e) => {
@@ -292,7 +303,9 @@ const stateLocalStorage = new LocalStorageManager<SerializableState | null>(
   (value) => new PrefsSerializer().parse(JSON.parse(value)),
 );
 
-const UPLOAD_CUSTOM_OPTION_ID = "upload-custom";
+function displayName(fileName: string) {
+  return fileName.replace(/\.[^.]+$/, "");
+}
 
 function getSafeAreaSize() {
   return document.body.getBoundingClientRect();

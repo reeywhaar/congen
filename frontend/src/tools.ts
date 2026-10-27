@@ -116,3 +116,53 @@ export function readImage(url: string) {
     }, 2000);
   });
 }
+
+/**
+ * Exposes a range input's value and its zero point as 0..1 fractions for CSS,
+ * and shows the value in its `<output for="...">`.
+ */
+export function syncRange(input: HTMLInputElement) {
+  const min = parseFloat(input.min);
+  const max = parseFloat(input.max);
+  const value = parseFloat(input.value);
+  const fraction = (value: number) => (value - min) / (max - min);
+  input.style.setProperty("--value", String(fraction(value)));
+  input.style.setProperty(
+    "--origin",
+    String(fraction(Math.min(Math.max(0, min), max))),
+  );
+
+  const output = document.querySelector<HTMLOutputElement>(
+    `output[for="${input.id}"]`,
+  );
+  if (output) {
+    output.value = (value > 0 ? "+" : "") + value.toFixed(2).replace("-", "−");
+  }
+}
+
+/**
+ * Steps a number input by one step up (direction > 0) or down. With `data-step-factor`
+ * the value is multiplied or divided by that factor, otherwise the native `step` is used.
+ */
+export function stepNumberInput(input: HTMLInputElement, direction: number) {
+  const factor = parseFloat(input.dataset.stepFactor ?? "");
+  if (!factor) {
+    if (direction > 0) input.stepUp();
+    else input.stepDown();
+    return;
+  }
+  const min = input.min ? parseFloat(input.min) : -Infinity;
+  const max = input.max ? parseFloat(input.max) : Infinity;
+  const current = parseFloat(input.value) || parseFloat(input.defaultValue);
+  const next = current * factor ** Math.sign(direction);
+  input.value = String(
+    Number(Math.min(Math.max(next, min), max).toPrecision(3)),
+  );
+}
+
+/** Closes the dialog on clicks outside its content. Its body must fill it (no dialog padding). */
+export function closeOnBackdropClick(dialog: HTMLDialogElement) {
+  dialog.addEventListener("click", (e) => {
+    if (e.target === dialog) dialog.close();
+  });
+}
