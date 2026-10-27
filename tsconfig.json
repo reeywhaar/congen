@@ -12,6 +12,8 @@
     "allowJs": true,
     "target": "ES6",
     "moduleResolution": "bundler",
+    "isolatedModules": true,
+    "skipLibCheck": true,
     "sourceMap": true
   },
   "include": [

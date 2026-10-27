@@ -3,9 +3,9 @@ FROM node:26-alpine AS frontend-builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
-COPY tsconfig.json webpack.config.js ./
+COPY tsconfig.json vite.config.js ./
 COPY frontend/ ./frontend/
-RUN npm run build:production
+RUN npm run build
 
 # Stage 2: Build backend
 FROM golang:1.27-alpine AS backend-builder
