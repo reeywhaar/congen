@@ -1,5 +1,5 @@
 # Stage 1: Build frontend
-FROM node:lts-alpine AS frontend-builder
+FROM node:26-alpine AS frontend-builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -8,7 +8,7 @@ COPY frontend/ ./frontend/
 RUN npm run build:production
 
 # Stage 2: Build backend
-FROM golang:1.26-alpine AS backend-builder
+FROM golang:1.27-alpine AS backend-builder
 WORKDIR /app
 COPY go.mod ./
 RUN go mod download
