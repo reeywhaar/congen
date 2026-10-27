@@ -55,3 +55,7 @@ docker run -p 8080:80 texgen
 To build for another architecture, pass `--platform`, e.g. `--platform linux/amd64` on an Apple Silicon Mac. The build stages run natively and Go cross-compiles, so nothing is emulated.
 
 The server takes `-port` (default 8080) and `-dir` (default `build/frontend`), and logs each request as a line of JSON. Vite's content-hashed files in `/assets/` are cached for a year; everything else is revalidated on each load, so a new deploy shows up immediately.
+
+## License
+
+MIT, see [LICENSE](LICENSE).
