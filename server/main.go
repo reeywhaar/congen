@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func main() {
 
 	fs := http.FileServer(http.Dir(absRoot))
 	mux := http.NewServeMux()
-	mux.Handle("/", loggingMiddleware(fs))
+	mux.Handle("/", loggingMiddleware(cacheControlMiddleware(fs)))
 
 	addr := fmt.Sprintf(":%d", *port)
 	log.Printf("Serving %s on http://localhost%s", absRoot, addr)
@@ -56,6 +57,19 @@ func (rw *responseWriter) Write(b []byte) (int, error) {
 	n, err := rw.ResponseWriter.Write(b)
 	rw.bytes += n
 	return n, err
+}
+
+// cacheControlMiddleware lets browsers keep Vite's content-hashed /assets/ forever, and
+// makes them revalidate everything else (index.html above all), so a deploy shows up at once.
+func cacheControlMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasPrefix(r.URL.Path, "/assets/") {
+			w.Header().Set("Cache-Control", "public, max-age=31536000, immutable")
+		} else {
+			w.Header().Set("Cache-Control", "no-cache")
+		}
+		next.ServeHTTP(w, r)
+	})
 }
 
 func loggingMiddleware(next http.Handler) http.Handler {
