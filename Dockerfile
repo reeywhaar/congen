@@ -1,5 +1,8 @@
+# Build stages run natively on the build machine ($BUILDPLATFORM) even when targeting
+# another architecture: the frontend is static files, and Go cross-compiles.
+
 # Stage 1: Build frontend
-FROM node:26-alpine AS frontend-builder
+FROM --platform=$BUILDPLATFORM node:26-alpine AS frontend-builder
 WORKDIR /app
 RUN apk add --no-cache vips-tools
 COPY package*.json ./
@@ -15,12 +18,14 @@ RUN mkdir -p frontend/public/img/thumbs \
 RUN npm run build
 
 # Stage 2: Build backend
-FROM golang:1.27-alpine AS backend-builder
+FROM --platform=$BUILDPLATFORM golang:1.27-alpine AS backend-builder
+ARG TARGETOS TARGETARCH
 WORKDIR /app
 COPY go.mod ./
 RUN go mod download
 COPY server/ ./server/
-RUN go build -ldflags="-w -s" -o build/server ./server/
+RUN CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH \
+  go build -ldflags="-w -s" -o build/server ./server/
 
 # Stage 3: Run
 FROM alpine:latest
