@@ -1,6 +1,6 @@
 import { Dom } from "./Dom";
 import { SerializableState } from "./SerializableState";
-import * as filters from "./filters";
+import { filters } from "./filters";
 import { parseDecimal } from "./tools";
 
 export class Prefs {
@@ -42,7 +42,7 @@ export class Prefs {
 
   get appliedEffects() {
     return this.appliedEffectsNames.map(
-      (x) => filters[x as keyof typeof filters],
+      (x) => filters.find((filter) => filter.name === x)!.arr,
     );
   }
 }

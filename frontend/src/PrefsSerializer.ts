@@ -1,3 +1,4 @@
+import { filters } from "./filters";
 import { Prefs } from "./Prefs";
 import { SerializableState } from "./SerializableState";
 
@@ -20,7 +21,10 @@ export class PrefsSerializer {
     return {
       source: data.source,
       scale: typeof data.scale === "number" ? data.scale : undefined,
-      filters: Array.isArray(data.filters) ? data.filters : undefined,
+      // drops names of filters that have since been renamed or removed
+      filters: Array.isArray(data.filters)
+        ? data.filters.filter((x) => filters.some((f) => f.name === x))
+        : undefined,
       brightness:
         typeof data.brightness === "number" ? data.brightness : undefined,
       contrast: typeof data.contrast === "number" ? data.contrast : undefined,

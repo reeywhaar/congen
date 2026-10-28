@@ -1,6 +1,6 @@
 import * as tools from "./tools";
 import { C } from "./ctools";
-import * as filters from "./filters";
+import { filters } from "./filters";
 import images from "./list";
 import { alea } from "seedrandom";
 import { LocalStorageManager } from "./LocalStorageManager";
@@ -214,11 +214,11 @@ async function main() {
     await addFile(file);
   });
 
-  Object.keys(filters).forEach((filter) => {
+  filters.forEach((filter) => {
     const opt = document.createElement("button");
     opt.type = "button";
     opt.classList.add("filter-item");
-    opt.innerText = filter;
+    opt.innerText = filter.name;
     opt.addEventListener("click", (e) => {
       dom.addFilter(opt.innerText);
       update();
