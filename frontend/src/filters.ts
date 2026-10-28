@@ -124,6 +124,15 @@ export const filters: Filter[] = [
     ]),
   },
   {
+    name: "emboss x1/2",
+    // prettier-ignore
+    arr: new Float32Array([
+      -1, -1,  0,
+      -1,  2,  1,
+       0,  1,  1,
+    ]),
+  },
+  {
     name: "emboss",
     // prettier-ignore
     arr: new Float32Array([
