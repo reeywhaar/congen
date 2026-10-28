@@ -19,10 +19,6 @@ export class C {
     this.ctx = ctx;
   }
 
-  /**
-   *
-   * @return {WebGLShader}
-   */
   getShader(type: number, source: string) {
     const shader = this.ctx.createShader(type)!;
     this.ctx.shaderSource(shader, source);
@@ -38,10 +34,6 @@ export class C {
     return shader;
   }
 
-  /**
-   *
-   * @return {WebGLProgram}
-   */
   getProgram(vertextShaderSource: string, fragmentShaderSource: string) {
     const vertexShader = this.getShader(
       this.ctx.VERTEX_SHADER,
@@ -114,10 +106,6 @@ export class C {
     fillAttribPointer(this.positionLocation);
   }
 
-  /**
-   * @param {HTMLImageElement} image
-   * @return Texture
-   */
   createTexture(image?: HTMLImageElement) {
     const texture = this.ctx.createTexture()!;
     this.ctx.bindTexture(this.ctx.TEXTURE_2D, texture);
@@ -208,11 +196,6 @@ export class C {
     this.ctx.viewport(0, 0, width, height);
   }
 
-  /**
-   * @param {string} key
-   * @param {string} type
-   * @param {Number|array} value
-   */
   setUniform(key: string, type: string, value: any) {
     const loc = this.ctx.getUniformLocation(this.program!, `u_${key}`);
     if (loc === null) throw new Error(`unable to get Location "u_${key}"`);
@@ -392,10 +375,6 @@ export class C {
     });
   }
 
-  /**
-   * @param {HTMLImageElement} image
-   * @returns Texture
-   */
   async tile(
     texture: Texture,
     {
@@ -437,20 +416,8 @@ export class C {
     return fbtext;
   }
 
-  /**
-   * @param {Texture} texture
-   * @param {array} effects
-   * @returns Texture
-   */
-  applyEffects(texture: Texture, effects: Float32Array[] = []) {
-    if (effects.length < 1) return texture;
-
-    this.setProgram(programs.effects);
-
-    const getKernelWeight = (kernel: Float32Array) => {
-      const weight = kernel.reduce((c, x) => c + x);
-      return weight <= 0 ? 1 : weight;
-    };
+  convolve(texture: Texture, kernel: Float32Array) {
+    const weight = kernel.reduce((c, x) => c + x);
 
     const toKernel5x5 = (kernel: Float32Array) => {
       if (kernel.length === 25) return kernel;
@@ -461,66 +428,20 @@ export class C {
       return padded;
     };
 
-    const guf = (pointer: string) => {
-      const loc = this.ctx.getUniformLocation(this.program!, pointer);
-      if (loc === null) throw new Error(`unable to set Location "${pointer}"`);
-      return loc;
-    };
-
-    const matrixLocation = guf("u_matrix");
-    const textureLocation = guf("u_texture");
-    const textureSizeLocation = guf("u_textureSize");
-    const textureMatrixLocation = guf("u_textureMatrix");
-    const kernelLocation = guf("u_kernel");
-    const kernelWeightLocation = guf("u_kernelWeight");
-
-    this.ctx.uniform1i(textureLocation, 0);
-    this.ctx.uniform2f(textureSizeLocation, texture.width, texture.height);
-
-    let matrix = new Monad(
-      twgl.m4.ortho(0, texture.width, 0, texture.height, -1, 1),
-    ).map((matrix) =>
-      twgl.m4.scale(matrix, [texture.width, texture.height, 1]),
-    ).value;
-
-    this.ctx.uniformMatrix4fv(matrixLocation, false, matrix);
-
-    const texMatrix = twgl.m4.translation([0, 0, 0]);
-
-    this.ctx.uniformMatrix4fv(textureMatrixLocation, false, texMatrix);
-
-    const fb = [
-      this.createFramebufferAndTexture(texture.width, texture.height),
-      this.createFramebufferAndTexture(texture.width, texture.height),
-    ];
-
-    this.ctx.bindTexture(this.ctx.TEXTURE_2D, texture.texture);
-
-    for (let [index, effect] of effects.entries()) {
-      this.setFramebuffer(fb[index % 2][0], texture.width, texture.height);
-
-      this.ctx.uniform1fv(kernelLocation, toKernel5x5(effect));
-      this.ctx.uniform1f(kernelWeightLocation, getKernelWeight(effect));
-      this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 6);
-      this.ctx.bindTexture(this.ctx.TEXTURE_2D, fb[index % 2][1].texture);
-      if (index === effects.length - 1)
-        return new Texture(
-          fb[index % 2][1].texture,
-          texture.width,
-          texture.height,
-        );
-    }
-
-    throw new Error("Unexpected return");
+    return this.applyProgram(texture, programs.effects, [
+      {
+        key: "kernel",
+        type: "1fv",
+        value: toKernel5x5(kernel),
+      },
+      {
+        key: "kernelWeight",
+        type: "1f",
+        value: weight <= 0 ? 1 : weight,
+      },
+    ]);
   }
 
-  /**
-   * @param {Texture} texture
-   * @param {Number} width
-   * @param {Number} height
-   *
-   * @returns Texture
-   */
   diffuse(texture: Texture, distribution = 120) {
     const self = this;
     return this.applyProgram(texture, programs.diffuse, [

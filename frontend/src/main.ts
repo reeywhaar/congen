@@ -11,6 +11,7 @@ import { Dom } from "./Dom";
 import { SerializableState } from "./SerializableState";
 import { SizePrompt } from "./SizePrompt";
 import { ImagePicker } from "./ImagePicker";
+import { Chain } from "./Chain";
 
 async function main() {
   const canvas = document.querySelector("canvas")!;
@@ -22,32 +23,30 @@ async function main() {
   const dom = new Dom();
   const imagePicker = new ImagePicker(dom);
   const sizePrompt = new SizePrompt(dom);
+  const chain = new Chain(dom);
 
   const db = new Database();
   await db.initialize();
 
   const storedPrefsState = stateLocalStorage.get();
   if (storedPrefsState) {
-    const prefs = new Prefs(dom);
+    const prefs = new Prefs(dom, chain.steps);
     prefs.restore(storedPrefsState);
 
     tools.setNumberField(dom.scale, prefs.scale);
-    dom.saturation.value = String(prefs.saturation);
-    dom.contrast.value = String(prefs.contrast);
-    dom.brightness.value = String(prefs.brightness);
     tools.setNumberField(dom.maskTileSize, prefs.maskTileSize);
-    for (const filter of prefs.appliedEffectsNames) {
-      dom.addFilter(filter);
-    }
+    chain.set(prefs.steps);
   }
 
   const update = tools.debounce(() => {
-    stateLocalStorage.set(new PrefsSerializer().serialize(new Prefs(dom)));
+    stateLocalStorage.set(
+      new PrefsSerializer().serialize(new Prefs(dom, chain.steps)),
+    );
     const size = getSafeAreaSize();
     generate(canvas, size.width, size.height);
   }, 200);
 
-  dom.onChange = update;
+  chain.onChange = update;
 
   dom.download.addEventListener("click", async () => {
     const ocanvas = new OffscreenCanvas(100, 100);
@@ -128,13 +127,6 @@ async function main() {
     await tools.readImage(dom.source.options[dom.source.selectedIndex].value),
   ] as const;
 
-  [dom.brightness, dom.contrast, dom.saturation].forEach((el) => {
-    tools.syncRange(el);
-    el.addEventListener("input", () => tools.syncRange(el));
-    el.addEventListener("input", update);
-    el.addEventListener("change", update);
-  });
-
   const selectChangeHandler = tools.debounce(
     async () => {
       const selectedOption = dom.source.options[dom.source.selectedIndex];
@@ -192,7 +184,7 @@ async function main() {
   }
 
   if (storedPrefsState) {
-    const prefs = new Prefs(dom);
+    const prefs = new Prefs(dom, chain.steps);
     prefs.restore(storedPrefsState);
     if (prefs.source) {
       const ind = Array.from(dom.source.options).findIndex(
@@ -214,18 +206,6 @@ async function main() {
     await addFile(file);
   });
 
-  filters.forEach((filter) => {
-    const opt = document.createElement("button");
-    opt.type = "button";
-    opt.classList.add("filter-item");
-    opt.innerText = filter.name;
-    opt.addEventListener("click", (e) => {
-      dom.addFilter(opt.innerText);
-      update();
-    });
-    dom.filterStack.appendChild(opt);
-  });
-
   const generate = async (
     canvas: HTMLCanvasElement | OffscreenCanvas,
     width: number,
@@ -234,7 +214,7 @@ async function main() {
     const max = 20000;
     canvas.width = Math.min(width, max);
     canvas.height = Math.min(height, max);
-    const prefs = new Prefs(dom);
+    const prefs = new Prefs(dom, chain.steps);
 
     const rng = alea(String(seed));
 
@@ -275,16 +255,14 @@ async function main() {
     if (prefs.distribution > 0) {
       texture = c.diffuse(texture, prefs.distribution);
     }
-    if (prefs.appliedEffects.length > 0) {
-      texture = c.applyEffects(texture, prefs.appliedEffects);
-    }
-    if (prefs.saturation || prefs.brightness || prefs.contrast) {
-      texture = c.adjust(
-        texture,
-        prefs.saturation,
-        prefs.contrast,
-        prefs.brightness,
-      );
+    for (const step of prefs.steps) {
+      texture =
+        step.type === "filter"
+          ? c.convolve(
+              texture,
+              filters.find((filter) => filter.name === step.name)!.arr,
+            )
+          : c.adjust(texture, step.saturation, step.contrast, step.brightness);
     }
     c.render(texture, {
       srcX: prefs.distribution,

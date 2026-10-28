@@ -1,3 +1,4 @@
+import { Step } from "./Chain";
 import { filters } from "./filters";
 import { Prefs } from "./Prefs";
 import { SerializableState } from "./SerializableState";
@@ -7,10 +8,7 @@ export class PrefsSerializer {
     return {
       source: prefs.source,
       scale: prefs.scale,
-      filters: prefs.appliedEffectsNames,
-      brightness: prefs.brightness,
-      contrast: prefs.contrast,
-      saturation: prefs.saturation,
+      steps: prefs.steps,
       maskTileSize: prefs.maskTileSize,
     };
   }
@@ -21,16 +19,29 @@ export class PrefsSerializer {
     return {
       source: data.source,
       scale: typeof data.scale === "number" ? data.scale : undefined,
-      filters: Array.isArray(data.filters)
-        ? data.filters.filter((x) => filters.some((f) => f.name === x))
+      steps: Array.isArray(data.steps)
+        ? data.steps.flatMap((step) => this.parseStep(step) ?? [])
         : undefined,
-      brightness:
-        typeof data.brightness === "number" ? data.brightness : undefined,
-      contrast: typeof data.contrast === "number" ? data.contrast : undefined,
-      saturation:
-        typeof data.saturation === "number" ? data.saturation : undefined,
       maskTileSize:
         typeof data.maskTileSize === "number" ? data.maskTileSize : undefined,
     };
+  }
+
+  private parseStep(data: any): Step | null {
+    if (data?.type === "filter") {
+      return filters.some((f) => f.name === data.name)
+        ? { type: "filter", name: data.name }
+        : null;
+    }
+    if (data?.type === "adjust") {
+      const number = (x: unknown) => (typeof x === "number" ? x : 0);
+      return {
+        type: "adjust",
+        brightness: number(data.brightness),
+        contrast: number(data.contrast),
+        saturation: number(data.saturation),
+      };
+    }
+    return null;
   }
 }

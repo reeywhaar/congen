@@ -2,6 +2,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 :root {
   --panel-width: 320px;
   --control-height: 26px;
@@ -123,6 +127,12 @@ canvas {
   color: var(--text-muted);
 }
 
+.controls__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
 .field {
   display: flex;
   flex-direction: column;
@@ -130,25 +140,43 @@ canvas {
   min-width: 0;
 }
 
-.filter-stack,
-.applied-filters {
+.chain-reset {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.chain-reset:hover {
+  color: var(--text);
+}
+
+.chain {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.applied-filters {
-  margin-top: 6px;
+/* where a dragged step will land; placed from js */
+.chain__marker {
+  position: absolute;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--accent);
+  pointer-events: none;
 }
 
-.applied-filters:empty {
+.chain:empty {
   display: none;
 }
 
-.filter-item {
+.chip {
   display: inline-flex;
   align-items: center;
-  padding: 2px 5px;
+  height: 18px;
+  padding: 0 5px;
   border: var(--hairline) solid var(--field-border);
   border-radius: var(--radius);
   background: var(--field-background);
@@ -158,17 +186,38 @@ canvas {
   cursor: pointer;
 }
 
-.filter-item:hover {
+@media (pointer: coarse) {
+  .chip {
+    height: 24px;
+    padding: 0 7px;
+  }
+}
+
+.chip:hover {
   border-color: var(--field-border-hover);
 }
 
-.applied-filters .filter-item {
+.chain__step {
   background: color-mix(in srgb, var(--field-background), var(--accent) 15%);
+  /* a drag on a chip moves the chip instead of scrolling the panel */
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
-/* a drawn × centres exactly, unlike the glyph; generated content also stays out of
-   innerText, which is how applied filters are read back */
-.applied-filters .filter-item::after {
+.chain__step_dragging {
+  border-color: var(--field-border-hover);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  cursor: grabbing;
+}
+
+.chain__step_pending {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+/* a drawn × centres exactly, unlike the glyph */
+.chain__step_filter::after {
   --cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 1l8 8M9 1l-8 8' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
   content: "";
   width: 6px;
@@ -179,12 +228,45 @@ canvas {
   mask: var(--cross) center / contain no-repeat;
 }
 
-.applied-filters .filter-item:hover::after {
+.chain__step_filter:hover::after {
   background: var(--field-text);
 }
 
-.adjustments {
+.chain-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 2px;
+  padding: 8px;
+  border: var(--hairline) solid var(--field-border);
+  border-radius: var(--radius);
+}
+
+.chain-menu__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.chain-menu__filters .chip[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--field-background), var(--accent) 15%);
+}
+
+.chain-menu__adjust {
+  display: flex;
+  flex-direction: column;
   gap: 10px;
+}
+
+.chain-menu__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.chain-menu__remove {
+  margin-right: auto;
 }
 
 .adjustment {

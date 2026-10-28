@@ -1,6 +1,6 @@
 import { Dom } from "./Dom";
 import { SerializableState } from "./SerializableState";
-import { filters } from "./filters";
+import { Step } from "./Chain";
 import { parseDecimal } from "./tools";
 
 export class Prefs {
@@ -8,41 +8,21 @@ export class Prefs {
   maskTileSize: number;
   distribution: number;
   scale: number;
-  saturation: number;
-  contrast: number;
-  brightness: number;
-  appliedEffectsNames: string[];
+  steps: Step[];
 
-  constructor(dom: Dom) {
+  constructor(dom: Dom, steps: Step[]) {
     this.source = dom.source.value;
     this.maskTileSize = parseInt(dom.maskTileSize.value, 10) || 0;
     this.distribution = 0;
     this.scale = parseDecimal(dom.scale.value) || 1;
-    this.saturation = parseFloat(dom.saturation.value) || 0;
-    this.contrast = parseFloat(dom.contrast.value) || 0;
-    this.brightness = parseFloat(dom.brightness.value) || 0;
-    this.appliedEffectsNames = Array.from(dom.appliedFilters.childNodes).map(
-      (x) => (x as HTMLDivElement).innerText,
-    );
+    this.steps = steps;
   }
 
   restore(state: SerializableState) {
     if (typeof state.source !== "undefined") this.source = state.source;
     if (typeof state.scale !== "undefined") this.scale = state.scale;
-    if (typeof state.saturation !== "undefined")
-      this.saturation = state.saturation;
-    if (typeof state.contrast !== "undefined") this.contrast = state.contrast;
-    if (typeof state.brightness !== "undefined")
-      this.brightness = state.brightness;
     if (typeof state.maskTileSize !== "undefined")
       this.maskTileSize = state.maskTileSize;
-    if (typeof state.filters !== "undefined")
-      this.appliedEffectsNames = state.filters;
-  }
-
-  get appliedEffects() {
-    return this.appliedEffectsNames.map(
-      (x) => filters.find((filter) => filter.name === x)!.arr,
-    );
+    if (typeof state.steps !== "undefined") this.steps = state.steps;
   }
 }

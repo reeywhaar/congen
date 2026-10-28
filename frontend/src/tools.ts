@@ -135,9 +135,12 @@ export function syncRange(input: HTMLInputElement) {
   const output = document.querySelector<HTMLOutputElement>(
     `output[for="${input.id}"]`,
   );
-  if (output) {
-    output.value = (value > 0 ? "+" : "") + value.toFixed(2).replace("-", "−");
-  }
+  if (output) output.value = formatSigned(value);
+}
+
+/** Shows the sign of non-zero values, with a real minus. */
+export function formatSigned(value: number) {
+  return (value > 0 ? "+" : "") + value.toFixed(2).replace("-", "−");
 }
 
 /*

@@ -1,6 +1,4 @@
 export class Dom {
-  onChange?: () => void;
-
   private qs = <T extends Element = Element>(x: string) => {
     const el = document.querySelector<T>(x);
     if (!el) throw new Error("el is null");
@@ -18,24 +16,21 @@ export class Dom {
   sizeDialog = this.qs<HTMLDialogElement>(".size-dialog");
   sizeWidth = this.qs<HTMLInputElement>(".size-dialog__width");
   sizeHeight = this.qs<HTMLInputElement>(".size-dialog__height");
-  appliedFilters = this.qs<HTMLDivElement>(".applied-filters");
-  filterStack = this.qs<HTMLDivElement>(".filter-stack");
+  chain = this.qs<HTMLDivElement>(".chain");
+  chainAdd = this.qs<HTMLDivElement>(".chain-add");
+  chainAddAdjust = this.qs<HTMLButtonElement>(".chain-add__adjust");
+  chainAddFilter = this.qs<HTMLButtonElement>(".chain-add__filter");
+  chainReset = this.qs<HTMLButtonElement>(".chain-reset");
+  chainMenu = this.qs<HTMLDivElement>(".chain-menu");
+  chainFilters = this.qs<HTMLDivElement>(".chain-menu__filters");
+  chainAdjust = this.qs<HTMLDivElement>(".chain-menu__adjust");
+  chainApply = this.qs<HTMLButtonElement>(".chain-menu__apply");
+  chainCancel = this.qs<HTMLButtonElement>(".chain-menu__cancel");
+  chainRemove = this.qs<HTMLButtonElement>(".chain-menu__remove");
   generate = this.qs<HTMLButtonElement>(".genb");
   maskTileSize = this.qs<HTMLInputElement>(".mask-tiles__value");
   saturation = this.qs<HTMLInputElement>(".saturationInput");
   contrast = this.qs<HTMLInputElement>(".contrastInput");
   brightness = this.qs<HTMLInputElement>(".brightnessInput");
   download = this.qs<HTMLButtonElement>(".downloadb");
-
-  addFilter(name: string) {
-    const el = document.createElement("button");
-    el.type = "button";
-    el.innerText = name;
-    el.classList.add("filter-item");
-    el.addEventListener("click", (e) => {
-      this.appliedFilters.removeChild(el);
-      this.onChange?.();
-    });
-    this.appliedFilters.appendChild(el);
-  }
 }

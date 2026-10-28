@@ -7,8 +7,7 @@ Demo: [texgen.vyrtsev.com](https://texgen.vyrtsev.com/)
 ## Using it
 
 - **Image**: pick a built-in texture or upload your own (dropping a file on the page works too). Uploads are stored in the browser's IndexedDB.
-- **Filters**: click a filter to add it; filters apply in the order they were added. Click an applied filter to remove it.
-- **Brightness, Contrast, Saturation**: 0 leaves the image unchanged.
+- **Filters**: + adds a step to the chain: a filter, or a brightness / contrast / saturation adjustment (0 leaves the image unchanged). Steps apply in order, so an adjustment can come before or after filters. Click a filter in the chain to remove it, or an adjustment to edit or remove it; drag steps to reorder them. Reset clears the chain.
 - **Scale**: the size of the source image in the texture. − and + (or the arrow keys) take off 20% or add 25%.
 - **Crossfade size**: how wide the blend between tiles is.
 - **Generate**: picks a new random tile layout.

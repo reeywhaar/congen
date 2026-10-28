@@ -26,35 +26,48 @@
     </section>
 
     <section class="controls__section">
-      <div class="controls__label">Filters</div>
-      <div class="filter-stack"></div>
-      <div class="applied-filters"></div>
-    </section>
-
-    <section class="controls__section adjustments">
-      <div class="adjustment">
-        <div class="adjustment__header">
-          <label class="controls__label" for="brightness">Brightness</label>
-          <output class="adjustment__value" for="brightness"></output>
-        </div>
-        <input id="brightness" type="range" class="adjustment__input brightnessInput" step="0.01" value="0" min="-1"
-          max="1">
+      <div class="controls__header">
+        <div class="controls__label">Filters</div>
+        <button type="button" class="controls__label chain-reset" hidden>Reset</button>
       </div>
-      <div class="adjustment">
-        <div class="adjustment__header">
-          <label class="controls__label" for="contrast">Contrast</label>
-          <output class="adjustment__value" for="contrast"></output>
-        </div>
-        <input id="contrast" type="range" class="adjustment__input contrastInput" step="0.01" value="0" min="-1"
-          max="1">
+      <div class="chain"></div>
+      <div class="controls__section_columns chain-add">
+        <button type="button" class="button chain-add__adjust">Adjust</button>
+        <button type="button" class="button chain-add__filter">Filter</button>
       </div>
-      <div class="adjustment">
-        <div class="adjustment__header">
-          <label class="controls__label" for="saturation">Saturation</label>
-          <output class="adjustment__value" for="saturation"></output>
+      <div class="chain-menu" hidden>
+        <div class="chain-menu__filters" hidden></div>
+        <div class="chain-menu__adjust" hidden>
+          <div class="adjustment">
+            <div class="adjustment__header">
+              <label class="controls__label" for="brightness">Brightness</label>
+              <output class="adjustment__value" for="brightness"></output>
+            </div>
+            <input id="brightness" type="range" class="adjustment__input brightnessInput" step="0.01" value="0" min="-1"
+              max="1">
+          </div>
+          <div class="adjustment">
+            <div class="adjustment__header">
+              <label class="controls__label" for="contrast">Contrast</label>
+              <output class="adjustment__value" for="contrast"></output>
+            </div>
+            <input id="contrast" type="range" class="adjustment__input contrastInput" step="0.01" value="0" min="-1"
+              max="1">
+          </div>
+          <div class="adjustment">
+            <div class="adjustment__header">
+              <label class="controls__label" for="saturation">Saturation</label>
+              <output class="adjustment__value" for="saturation"></output>
+            </div>
+            <input id="saturation" type="range" class="adjustment__input saturationInput" step="0.01" value="0" min="-1"
+              max="1">
+          </div>
         </div>
-        <input id="saturation" type="range" class="adjustment__input saturationInput" step="0.01" value="0" min="-1"
-          max="1">
+        <div class="chain-menu__actions">
+          <button type="button" class="button chain-menu__remove">Remove</button>
+          <button type="button" class="button chain-menu__cancel">Cancel</button>
+          <button type="button" class="button chain-menu__apply">Apply</button>
+        </div>
       </div>
     </section>
 
