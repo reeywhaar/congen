@@ -26,6 +26,7 @@
   --field-border-hover: hsl(0, 0%, 10%);
   --track-color: hsl(0, 0%, 33%);
   --thumb-placeholder: hsl(0, 0%, 26%);
+  --cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 1l8 8M9 1l-8 8' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
   accent-color: var(--accent);
 }
 
@@ -218,7 +219,6 @@ canvas {
 
 /* a drawn × centres exactly, unlike the glyph */
 .chain__step_filter::after {
-  --cross: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 10'%3E%3Cpath d='M1 1l8 8M9 1l-8 8' stroke='black' stroke-width='1.6'/%3E%3C/svg%3E");
   content: "";
   width: 6px;
   height: 6px;
@@ -691,6 +691,59 @@ canvas {
   box-shadow: 0 0 0 var(--hairline) var(--field-border);
   text-align: left;
   cursor: pointer;
+}
+
+.image-picker__cell {
+  position: relative;
+  display: flex;
+}
+
+.image-picker__cell .image-picker__item {
+  flex: 1;
+}
+
+.image-picker__remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: var(--hairline) solid var(--field-border);
+  border-radius: var(--radius);
+  background: var(--field-background);
+  color: var(--field-text-muted);
+  cursor: pointer;
+  opacity: 0;
+}
+
+.image-picker__remove::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: currentColor;
+  -webkit-mask: var(--cross) center / contain no-repeat;
+  mask: var(--cross) center / contain no-repeat;
+}
+
+.image-picker__cell:hover .image-picker__remove,
+.image-picker__remove:focus-visible {
+  opacity: 1;
+}
+
+.image-picker__remove:hover {
+  border-color: var(--field-border-hover);
+  color: var(--field-text);
+}
+
+/* no hover on touch screens */
+@media (pointer: coarse) {
+  .image-picker__remove {
+    opacity: 1;
+  }
 }
 
 .image-picker__item:hover {

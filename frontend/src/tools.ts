@@ -138,6 +138,26 @@ export function syncRange(input: HTMLInputElement) {
   if (output) output.value = formatSigned(value);
 }
 
+const crockford = "0123456789abcdefghjkmnpqrstvwxyz";
+
+/** `xxxx-xxxx` in Crockford base32 from the SHA-256 of the data, or random where hashing isn't available. */
+export async function hashName(data: Blob) {
+  // crypto.subtle only exists on https and localhost
+  const bytes = crypto.subtle
+    ? new Uint8Array(
+        await crypto.subtle.digest("SHA-256", await data.arrayBuffer()),
+      )
+    : crypto.getRandomValues(new Uint8Array(5));
+  // 5 bytes are 40 bits, 8 characters of 5 bits each
+  let n = bytes.subarray(0, 5).reduce((n, byte) => n * 256 + byte, 0);
+  let name = "";
+  for (let i = 0; i < 8; i++) {
+    name = crockford[n % 32] + name;
+    n = Math.floor(n / 32);
+  }
+  return `${name.slice(0, 4)}-${name.slice(4)}`;
+}
+
 /** Shows the sign of non-zero values, with a real minus. */
 export function formatSigned(value: number) {
   return (value > 0 ? "+" : "") + value.toFixed(2).replace("-", "−");

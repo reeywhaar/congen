@@ -47,6 +47,15 @@ export class Database {
     return out;
   }
 
+  removeImage(id: string) {
+    const tx = this.db.transaction("images", "readwrite");
+    tx.objectStore("images").delete(id);
+    return new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
   async getImages() {
     const tx = this.db.transaction("images", "readwrite");
 

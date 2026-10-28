@@ -6,7 +6,7 @@ Demo: [texgen.vyrtsev.com](https://texgen.vyrtsev.com/)
 
 ## Using it
 
-- **Image**: pick a built-in texture or upload your own (dropping a file on the page works too). Uploads are stored in the browser's IndexedDB.
+- **Image**: pick a built-in texture or upload your own (dropping a file on the page or pasting an image works too). Uploads are stored in the browser's IndexedDB; the × on an upload's tile removes it.
 - **Filters**: a chain of steps applied in order, so an adjustment can come before or after filters. Filter lists the filters; each click adds one to the end of the chain. Adjust opens brightness / contrast / saturation sliders (0 leaves the image unchanged), previewed until you apply or cancel. Click a filter in the chain to remove it, or an adjustment to edit or remove it; drag steps to reorder them. Reset clears the chain.
 - **Scale**: the size of the source image in the texture. − and + (or the arrow keys) take off 20% or add 25%.
 - **Crossfade size**: how wide the blend between tiles is.

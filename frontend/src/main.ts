@@ -171,6 +171,18 @@ async function main() {
     dom.source.dispatchEvent(new Event("change"));
   };
 
+  imagePicker.onRemove = async (option) => {
+    await db.removeImage(option.value);
+    URL.revokeObjectURL(option.dataset.thumb ?? "");
+    delete droppedImages[option.value];
+    const wasSelected = option.selected;
+    option.remove();
+    if (wasSelected) {
+      dom.source.selectedIndex = 0;
+      dom.source.dispatchEvent(new Event("change"));
+    }
+  };
+
   imagePicker.onUpload = async () => {
     const file = await tools.promptImage();
     if (file) addFile(file);
@@ -204,6 +216,18 @@ async function main() {
     if (!file) return;
 
     await addFile(file);
+  });
+
+  document.addEventListener("paste", async (e) => {
+    const file = Array.from(e.clipboardData?.items ?? [])
+      .find((item) => item.kind === "file" && item.type.startsWith("image/"))
+      ?.getAsFile();
+    if (!file) return;
+    e.preventDefault();
+    // clipboard images are all called image.png
+    const extension = file.name.match(/\.[^.]+$/)?.[0] ?? "";
+    const name = (await tools.hashName(file)) + extension;
+    await addFile(new File([file], name, { type: file.type }));
   });
 
   const generate = async (

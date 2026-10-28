@@ -8,10 +8,15 @@ import { closeOnBackdropClick } from "./tools";
  */
 export class ImagePicker {
   onUpload?: () => void;
+  onRemove?: (option: HTMLOptionElement) => Promise<void>;
 
   constructor(private dom: Dom) {
     dom.sourceButton.addEventListener("click", () => this.open());
-    dom.source.addEventListener("change", () => this.update());
+    dom.source.addEventListener("change", () => {
+      this.update();
+      // an image dropped or pasted while the dialog is open shows up in it
+      if (dom.imagePicker.open) this.render();
+    });
     closeOnBackdropClick(dom.imagePicker);
   }
 
@@ -23,15 +28,25 @@ export class ImagePicker {
   }
 
   private open() {
-    const grid = this.dom.imagePickerGrid;
-    grid.replaceChildren(
+    this.render();
+    this.dom.imagePicker.showModal();
+    this.focusSelected();
+  }
+
+  private render() {
+    this.dom.imagePickerGrid.replaceChildren(
       ...Array.from(this.dom.source.options).map((option) =>
         this.createItem(option),
       ),
       this.createUploadItem(),
     );
-    this.dom.imagePicker.showModal();
-    grid.querySelector<HTMLElement>("[aria-pressed=true]")?.focus();
+    if (this.dom.imagePicker.open) this.focusSelected();
+  }
+
+  private focusSelected() {
+    this.dom.imagePickerGrid
+      .querySelector<HTMLElement>("[aria-pressed=true]")
+      ?.focus();
   }
 
   private createItem(option: HTMLOptionElement) {
@@ -56,7 +71,21 @@ export class ImagePicker {
       this.dom.source.value = option.value;
       this.dom.source.dispatchEvent(new Event("change"));
     });
-    return item;
+    if (option.dataset.custom !== "true") return item;
+
+    const remove = document.createElement("button");
+    remove.type = "button";
+    remove.className = "image-picker__remove";
+    remove.setAttribute("aria-label", `Remove ${option.text}`);
+    remove.addEventListener("click", async () => {
+      await this.onRemove?.(option);
+      this.render();
+    });
+
+    const cell = document.createElement("div");
+    cell.className = "image-picker__cell";
+    cell.append(item, remove);
+    return cell;
   }
 
   private createUploadItem() {
