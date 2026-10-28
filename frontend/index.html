@@ -62,20 +62,22 @@
       <div class="field">
         <label class="controls__label" for="scale">Scale</label>
         <div class="stepper">
-          <button type="button" class="stepper__button" data-step="-1" aria-label="Decrease scale">&minus;</button>
-          <input id="scale" type="number" class="stepper__input zinput" value="0.5" min="0.1" step="any" max="10"
-            data-step-factor="1.25">
-          <button type="button" class="stepper__button" data-step="1" aria-label="Increase scale">+</button>
+          <button type="button" class="stepper__button" data-direction="-1" aria-label="Decrease scale">&minus;</button>
+          <input id="scale" type="text" inputmode="decimal" autocomplete="off" spellcheck="false"
+            class="stepper__input zinput" value="0.50" data-min="0.1" data-max="10" data-step-factor="1.25"
+            data-decimals="2">
+          <button type="button" class="stepper__button" data-direction="1" aria-label="Increase scale">+</button>
         </div>
       </div>
       <div class="field">
         <label class="controls__label" for="crossfade">Crossfade size</label>
         <div class="stepper">
-          <button type="button" class="stepper__button" data-step="-1"
+          <button type="button" class="stepper__button" data-direction="-1"
             aria-label="Decrease crossfade size">&minus;</button>
-          <input id="crossfade" type="number" class="stepper__input mask-tiles__value" value="45" min="0" step="5"
-            max="300">
-          <button type="button" class="stepper__button" data-step="1" aria-label="Increase crossfade size">+</button>
+          <input id="crossfade" type="text" inputmode="numeric" autocomplete="off" spellcheck="false"
+            class="stepper__input mask-tiles__value" value="45" data-min="0" data-max="300" data-step="5">
+          <button type="button" class="stepper__button" data-direction="1"
+            aria-label="Increase crossfade size">+</button>
         </div>
       </div>
     </section>

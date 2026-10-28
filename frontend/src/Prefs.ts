@@ -1,6 +1,7 @@
 import { Dom } from "./Dom";
 import { SerializableState } from "./SerializableState";
 import * as filters from "./filters";
+import { parseDecimal } from "./tools";
 
 export class Prefs {
   source: string;
@@ -16,7 +17,7 @@ export class Prefs {
     this.source = dom.source.value;
     this.maskTileSize = parseInt(dom.maskTileSize.value, 10) || 0;
     this.distribution = 0;
-    this.scale = parseFloat(dom.scale.value) || 1;
+    this.scale = parseDecimal(dom.scale.value) || 1;
     this.saturation = parseFloat(dom.saturation.value) || 0;
     this.contrast = parseFloat(dom.contrast.value) || 0;
     this.brightness = parseFloat(dom.brightness.value) || 0;

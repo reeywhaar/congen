@@ -140,24 +140,73 @@ export function syncRange(input: HTMLInputElement) {
   }
 }
 
-/**
- * Steps a number input by one step up (direction > 0) or down. With `data-step-factor`
- * the value is multiplied or divided by that factor, otherwise the native `step` is used.
+/*
+ * Number fields are text inputs, so they always show a dot as the decimal separator
+ * (number inputs follow the system locale). They're described by data attributes:
+ * `data-min`, `data-max`, `data-decimals`, and either `data-step` (added or subtracted,
+ * snapping to multiples of it) or `data-step-factor` (multiplied or divided by).
  */
-export function stepNumberInput(input: HTMLInputElement, direction: number) {
+
+/** Reads a decimal typed with either a dot or a comma. */
+export function parseDecimal(value: string) {
+  return parseFloat(value.replace(",", "."));
+}
+
+/** Clamps the value to the field's range and shows it with the field's decimals. */
+export function setNumberField(input: HTMLInputElement, value: number) {
+  const attr = (name: string, fallback: number) => {
+    const parsed = parseFloat(input.dataset[name] ?? "");
+    return Number.isNaN(parsed) ? fallback : parsed;
+  };
+  const clamped = Math.min(
+    Math.max(value, attr("min", -Infinity)),
+    attr("max", Infinity),
+  );
+  input.value = clamped.toFixed(attr("decimals", 0));
+}
+
+/** Re-formats what was typed; anything unreadable falls back to the default. */
+export function normalizeNumberField(input: HTMLInputElement) {
+  const value = parseDecimal(input.value);
+  setNumberField(
+    input,
+    Number.isNaN(value) ? parseDecimal(input.defaultValue) : value,
+  );
+}
+
+/**
+ * Drops anything but digits, and a decimal separator if the field has decimals,
+ * as it's typed or pasted, keeping the caret in place.
+ */
+export function filterNumberField(input: HTMLInputElement) {
+  const disallowed =
+    parseFloat(input.dataset.decimals ?? "0") > 0 ? /[^\d.,]/g : /\D/g;
+  const caret = input.selectionStart ?? input.value.length;
+  const before = input.value.slice(0, caret).replace(disallowed, "");
+  const after = input.value.slice(caret).replace(disallowed, "");
+  if (before + after === input.value) return;
+  input.value = before + after;
+  input.setSelectionRange(before.length, before.length);
+}
+
+/** Steps the field one step up (direction > 0) or down. */
+export function stepNumberField(input: HTMLInputElement, direction: number) {
+  const parsed = parseDecimal(input.value);
+  const value = Number.isNaN(parsed)
+    ? parseDecimal(input.defaultValue)
+    : parsed;
   const factor = parseFloat(input.dataset.stepFactor ?? "");
-  if (!factor) {
-    if (direction > 0) input.stepUp();
-    else input.stepDown();
+  if (factor) {
+    setNumberField(input, value * factor ** Math.sign(direction));
     return;
   }
-  const min = input.min ? parseFloat(input.min) : -Infinity;
-  const max = input.max ? parseFloat(input.max) : Infinity;
-  const current = parseFloat(input.value) || parseFloat(input.defaultValue);
-  const next = current * factor ** Math.sign(direction);
-  input.value = String(
-    Number(Math.min(Math.max(next, min), max).toPrecision(3)),
-  );
+  const step = parseFloat(input.dataset.step ?? "1");
+  // the epsilon absorbs float error, so a value already on the grid moves a whole step
+  const steps =
+    direction > 0
+      ? Math.floor(value / step + 1e-9) + 1
+      : Math.ceil(value / step - 1e-9) - 1;
+  setNumberField(input, steps * step);
 }
 
 /** Closes the dialog on clicks outside its content. Its body must fill it (no dialog padding). */

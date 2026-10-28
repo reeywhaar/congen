@@ -31,11 +31,11 @@ async function main() {
     const prefs = new Prefs(dom);
     prefs.restore(storedPrefsState);
 
-    dom.scale.value = String(prefs.scale);
+    tools.setNumberField(dom.scale, prefs.scale);
     dom.saturation.value = String(prefs.saturation);
     dom.contrast.value = String(prefs.contrast);
     dom.brightness.value = String(prefs.brightness);
-    dom.maskTileSize.value = String(prefs.maskTileSize);
+    tools.setNumberField(dom.maskTileSize, prefs.maskTileSize);
     for (const filter of prefs.appliedEffectsNames) {
       dom.addFilter(filter);
     }
@@ -71,13 +71,16 @@ async function main() {
     document.body.removeChild(a);
   });
 
-  [dom.scale, dom.maskTileSize].forEach((e) => {
-    e.addEventListener("keydown", (e) => {
+  [dom.scale, dom.maskTileSize].forEach((input) => {
+    input.addEventListener("keydown", (e) => {
       if ((e as any).which === 71) e.preventDefault();
       if ((e as any).which === 13) {
+        tools.normalizeNumberField(input);
         update();
       }
     });
+    input.addEventListener("input", () => tools.filterNumberField(input));
+    input.addEventListener("change", () => tools.normalizeNumberField(input));
   });
 
   [dom.scale, dom.maskTileSize].forEach((input) => {
@@ -85,15 +88,15 @@ async function main() {
       ?.querySelectorAll<HTMLButtonElement>(".stepper__button")
       .forEach((button) => {
         button.addEventListener("click", () => {
-          tools.stepNumberInput(input, Number(button.dataset.step));
+          tools.stepNumberField(input, Number(button.dataset.direction));
           update();
         });
       });
-    // arrow keys step the same way as the buttons (natively they'd use the step grid)
+    // arrow keys step the same way as the buttons
     input.addEventListener("keydown", (e) => {
       if (e.key !== "ArrowUp" && e.key !== "ArrowDown") return;
       e.preventDefault();
-      tools.stepNumberInput(input, e.key === "ArrowUp" ? 1 : -1);
+      tools.stepNumberField(input, e.key === "ArrowUp" ? 1 : -1);
       update();
     });
   });

@@ -339,18 +339,10 @@ canvas {
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   text-align: center;
-  -moz-appearance: textfield;
-  appearance: textfield;
 }
 
 .stepper__input:focus-visible {
   outline: none;
-}
-
-.stepper__input::-webkit-inner-spin-button,
-.stepper__input::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
 }
 
 .stepper__button {
