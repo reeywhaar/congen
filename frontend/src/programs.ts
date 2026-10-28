@@ -47,22 +47,18 @@ export const effects = `
 
 	uniform sampler2D u_texture;
 	uniform vec2      u_textureSize;
-	uniform float     u_kernel[9];
+	uniform float     u_kernel[25];
 	uniform float     u_kernelWeight;
 
 	vec2 onePixel = vec2(1, 1) / u_textureSize;
 
 	void main() {
-		vec4 colorSum =
-			texture2D(u_texture, v_texCoord + vec2(-1, -1) * onePixel) * u_kernel[0] +
-			texture2D(u_texture, v_texCoord + vec2( 0, -1) * onePixel) * u_kernel[1] +
-			texture2D(u_texture, v_texCoord + vec2( 1, -1) * onePixel) * u_kernel[2] +
-			texture2D(u_texture, v_texCoord + vec2(-1,  0) * onePixel) * u_kernel[3] +
-			texture2D(u_texture, v_texCoord + vec2( 0,  0) * onePixel) * u_kernel[4] +
-			texture2D(u_texture, v_texCoord + vec2( 1,  0) * onePixel) * u_kernel[5] +
-			texture2D(u_texture, v_texCoord + vec2(-1,  1) * onePixel) * u_kernel[6] +
-			texture2D(u_texture, v_texCoord + vec2( 0,  1) * onePixel) * u_kernel[7] +
-			texture2D(u_texture, v_texCoord + vec2( 1,  1) * onePixel) * u_kernel[8] ;
+		vec4 colorSum = vec4(0);
+		for (int y = 0; y < 5; y++) {
+			for (int x = 0; x < 5; x++) {
+				colorSum += texture2D(u_texture, v_texCoord + vec2(x - 2, y - 2) * onePixel) * u_kernel[y * 5 + x];
+			}
+		}
 		gl_FragColor = vec4((colorSum / u_kernelWeight).rgb, 1);
 	}
 `;

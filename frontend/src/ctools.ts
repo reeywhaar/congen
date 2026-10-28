@@ -452,6 +452,15 @@ export class C {
       return weight <= 0 ? 1 : weight;
     };
 
+    const toKernel5x5 = (kernel: Float32Array) => {
+      if (kernel.length === 25) return kernel;
+      const padded = new Float32Array(25);
+      for (let i = 0; i < 9; i++) {
+        padded[(Math.floor(i / 3) + 1) * 5 + (i % 3) + 1] = kernel[i];
+      }
+      return padded;
+    };
+
     const guf = (pointer: string) => {
       const loc = this.ctx.getUniformLocation(this.program!, pointer);
       if (loc === null) throw new Error(`unable to set Location "${pointer}"`);
@@ -490,7 +499,7 @@ export class C {
     for (let [index, effect] of effects.entries()) {
       this.setFramebuffer(fb[index % 2][0], texture.width, texture.height);
 
-      this.ctx.uniform1fv(kernelLocation, effect);
+      this.ctx.uniform1fv(kernelLocation, toKernel5x5(effect));
       this.ctx.uniform1f(kernelWeightLocation, getKernelWeight(effect));
       this.ctx.drawArrays(this.ctx.TRIANGLES, 0, 6);
       this.ctx.bindTexture(this.ctx.TEXTURE_2D, fb[index % 2][1].texture);
