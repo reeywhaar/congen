@@ -233,36 +233,30 @@ canvas {
 }
 
 .chain-menu {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
   margin-top: 2px;
   padding: 8px;
   border: var(--hairline) solid var(--field-border);
   border-radius: var(--radius);
 }
 
-.chain-menu__filters {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
-
-.chain-menu__filters .chip[aria-pressed="true"] {
-  border-color: var(--accent);
-  background: color-mix(in srgb, var(--field-background), var(--accent) 15%);
-}
-
+.chain-menu__filters,
 .chain-menu__adjust {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
+.chain-menu__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
 .chain-menu__actions {
   display: flex;
   justify-content: flex-end;
   gap: 6px;
+  margin-top: 2px;
 }
 
 .chain-menu__remove {

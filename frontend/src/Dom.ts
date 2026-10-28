@@ -23,10 +23,12 @@ export class Dom {
   chainReset = this.qs<HTMLButtonElement>(".chain-reset");
   chainMenu = this.qs<HTMLDivElement>(".chain-menu");
   chainFilters = this.qs<HTMLDivElement>(".chain-menu__filters");
+  chainFilterList = this.qs<HTMLDivElement>(".chain-menu__list");
   chainAdjust = this.qs<HTMLDivElement>(".chain-menu__adjust");
   chainApply = this.qs<HTMLButtonElement>(".chain-menu__apply");
   chainCancel = this.qs<HTMLButtonElement>(".chain-menu__cancel");
   chainRemove = this.qs<HTMLButtonElement>(".chain-menu__remove");
+  chainClose = this.qs<HTMLButtonElement>(".chain-menu__close");
   generate = this.qs<HTMLButtonElement>(".genb");
   maskTileSize = this.qs<HTMLInputElement>(".mask-tiles__value");
   saturation = this.qs<HTMLInputElement>(".saturationInput");
